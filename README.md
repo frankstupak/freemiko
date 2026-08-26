@@ -88,4 +88,4 @@ Not affiliated with Miko / Emotix / KlugTek. Miko 3 is a trademark of its respec
 
 ## License
 
-MIT
+GPL-3.0
