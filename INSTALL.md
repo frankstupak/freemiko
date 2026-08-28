@@ -24,6 +24,11 @@ start so the install can't be interrupted:
 adb shell pm disable-user --user 0 com.example.root.serviceexam
 ```
 
+This command itself needs adb, and adb is exactly what the watchdog reacts to, so on a freshly
+booted unit you are racing that same ~2s timer. Run it as your first action once the device is up;
+if the unit reboots before it lands, reconnect and run it again. The setting persists once it takes,
+so one clean hit ends the race for good.
+
 Leave it disabled — FreeMiko's neuter replaces the only behaviour it enforced. Re-enable with
 `adb shell pm enable com.example.root.serviceexam` if you ever want the stock watchdog back.
 

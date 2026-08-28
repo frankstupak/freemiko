@@ -47,11 +47,13 @@ public final class Neuter {
         s.append("echo '").append(NEUTERD_B64).append("' | base64 -d > \"$D/neuterd\" 2>>\"$LOG\"; chmod 755 \"$D/neuterd\"\n");
         // 2) (re)launch it; detached so it outlives this su call. setsid keeps it off our process group.
         s.append("pkill -f \"$D/neuterd\" 2>/dev/null\n");
+        s.append("rm -f \"$D/status\"\n");   // drop any stale status from a prior boot before relaunch
         s.append("setsid \"$D/neuterd\" </dev/null >>\"$LOG\" 2>&1 &\n");
         // neuterd reports success from INSIDE init's global mount ns via $D/status (a file on /data,
         // which is namespace-agnostic). Do NOT infer success from this shell's own view of
         // /system/bin/reboot — that view is this app's mount ns and may not match the global ns.
-        s.append("ST=; for i in 1 2 3 4 5 6; do ST=\"$(cat \"$D/status\" 2>/dev/null)\"; [ \"$ST\" = OK ] && break; sleep 0.5; done\n");
+        // Poll up to ~8s: comfortably longer than neuterd's 1s namespace-join retry cadence.
+        s.append("ST=; i=0; while [ $i -lt 16 ]; do ST=\"$(cat \"$D/status\" 2>/dev/null)\"; [ \"$ST\" = OK ] && break; sleep 0.5; i=$((i+1)); done\n");
         s.append("echo \"  neuterd status=$ST (this-ns reboot=$(wc -c < /system/bin/reboot 2>/dev/null)B)\" >> \"$LOG\"\n");
         // 3) grant FreeMiko the overlay app-op so the nav bar draws with no manual toggle
         s.append("( appops set ").append(PKG).append(" SYSTEM_ALERT_WINDOW allow || cmd appops set ").append(PKG).append(" SYSTEM_ALERT_WINDOW allow ) 2>>\"$LOG\" && echo '  overlay app-op granted' >> \"$LOG\"\n");

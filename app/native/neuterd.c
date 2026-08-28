@@ -108,7 +108,12 @@ static int reboot_is_real(void) {
 
 void _start(void) {
     int in_global = 0;
-    struct { long sec; long nsec; } ts = {5, 0};
+    struct { long sec; long nsec; } ts_slow = {5, 0};   /* steady-state self-heal cadence */
+    struct { long sec; long nsec; } ts_fast = {1, 0};   /* while still trying to join init's ns */
+
+    /* Clear any stale status from a previous boot (the file on /data survives reboots) so the
+     * launcher's OK-poll can't read a leftover "OK" before this run has re-applied the mount. */
+    write_status("PENDING\n");
 
     /* Self-heal loop. First enter init's GLOBAL mount ns, retrying until it takes; only then start
      * bind-mounting. setns() is CHECKED: on failure we refuse to mount, because a bind-mount made in
@@ -126,8 +131,8 @@ void _start(void) {
                 in_global = 1;
             } else {
                 write_status("ENOSETNS\n");
-                sys(SYS_nanosleep, (long)&ts, 0, 0, 0, 0);
-                continue;                 /* retry; never mount outside init's ns */
+                sys(SYS_nanosleep, (long)&ts_fast, 0, 0, 0, 0);  /* joining the ns is cheap; retry fast */
+                continue;                 /* never mount outside init's ns */
             }
         }
 
@@ -140,7 +145,7 @@ void _start(void) {
 
         /* This process lives in init's global ns, so this check is the authoritative one. */
         write_status(reboot_is_real() ? "PENDING\n" : "OK\n");
-        sys(SYS_nanosleep, (long)&ts, 0, 0, 0, 0);
+        sys(SYS_nanosleep, (long)&ts_slow, 0, 0, 0, 0);
     }
 
     sys(SYS_exit_group, 0, 0, 0, 0, 0);
