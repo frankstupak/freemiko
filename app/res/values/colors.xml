@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg">#0E1116</color>
+    <color name="bg_bar">#161B22</color>
+    <color name="surface">#1B2027</color>
+    <color name="accent">#3DA9FC</color>
+    <color name="text">#E6EDF3</color>
+    <color name="text_dim">#8B949E</color>
+    <color name="nav_bar_bg">#CC0E1116</color>
+    <color name="nav_icon">#E6EDF3</color>
+</resources>

@@ -1,0 +1,7 @@
+# build outputs
+build/
+gen/
+*.apk
+*.idsig
+# debug signing key is generated on demand by build.sh — never commit keys
+*.keystore

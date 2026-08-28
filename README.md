@@ -66,16 +66,18 @@ A rooted Android 9 device with:
 - [Hardware details](docs/hardware.md) — board revisions, pinouts, connectors
 - [Reverse engineering](docs/reverse-engineering.md) — how the unlock was found
 - [FAQ](docs/faq.md)
+- [Launcher app](app/README.md) — the FreeMiko home/nav-bar/watchdog-neuter APK
+- [Install guide](INSTALL.md) — adb steps to install the launcher on an unlocked unit
 
 ## Project status
 
 - [x] Unlock process verified on V5.4 base board
 - [x] ADB restore via userdata wipe
-- [x] Launcher replacement (KISS launcher interim, FreeMiko APK planned)
+- [x] Launcher replacement (KISS launcher interim, superseded by the FreeMiko launcher below)
 - [x] Face animation assets extracted (225 MP4s, 360 expression scripts)
 - [x] MCU UART protocol mapped (460800 8N1, 50+ commands)
 - [x] MikoPlus / Launcher / MCU Service decompiled (jadx)
-- [ ] FreeMiko APK with built-in setup wizard
+- [x] FreeMiko launcher APK — home replacement + built-in persistent nav bar + watchdog neuter (`app/`)
 - [ ] Face animation player
 - [ ] MCU serial bridge for external robot control
 - [ ] V3.1.6 base board testing
