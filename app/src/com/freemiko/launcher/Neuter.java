@@ -26,9 +26,11 @@ public final class Neuter {
     private static final String TAG = "FreeMiko";
     private static final String PKG = "com.freemiko.launcher";
 
-    /** If true, also bring up adb-over-wifi (:5555) + keep-awake at neuter time. The whole point of
-     *  the neuter is to keep a repurposed dev unit reachable; flip to false to neuter only. */
-    private static final boolean ENABLE_ADB_TCP = true;
+    /** Opt-in: also bring up adb-over-wifi (:5555) + keep-awake at neuter time. This opens an
+     *  UNAUTHENTICATED root adb port on the LAN, and it is re-applied on every boot, so it is OFF by
+     *  default. Enable it only on a unit you deliberately want remotely reachable, on a network you
+     *  trust. The neuter and the launcher do not need it. */
+    private static final boolean ENABLE_ADB_TCP = false;
 
     /** neuterd (arm64 ELF, freestanding) as base64 — injected from native/neuterd by build.sh. */
     private static final String NEUTERD_B64 = "@@NEUTERD_B64@@";
@@ -46,9 +48,11 @@ public final class Neuter {
         // 2) (re)launch it; detached so it outlives this su call. setsid keeps it off our process group.
         s.append("pkill -f \"$D/neuterd\" 2>/dev/null\n");
         s.append("setsid \"$D/neuterd\" </dev/null >>\"$LOG\" 2>&1 &\n");
-        s.append("sleep 1\n");
-        s.append("if [ \"$(wc -c < /system/bin/reboot)\" -lt 100 ]; then echo '  reboot NEUTERED (global ns, self-healing)' >> \"$LOG\"; ");
-        s.append("else echo \"  !! neuter NOT applied yet (reboot=$(wc -c < /system/bin/reboot) bytes)\" >> \"$LOG\"; fi\n");
+        // neuterd reports success from INSIDE init's global mount ns via $D/status (a file on /data,
+        // which is namespace-agnostic). Do NOT infer success from this shell's own view of
+        // /system/bin/reboot — that view is this app's mount ns and may not match the global ns.
+        s.append("ST=; for i in 1 2 3 4 5 6; do ST=\"$(cat \"$D/status\" 2>/dev/null)\"; [ \"$ST\" = OK ] && break; sleep 0.5; done\n");
+        s.append("echo \"  neuterd status=$ST (this-ns reboot=$(wc -c < /system/bin/reboot 2>/dev/null)B)\" >> \"$LOG\"\n");
         // 3) grant FreeMiko the overlay app-op so the nav bar draws with no manual toggle
         s.append("( appops set ").append(PKG).append(" SYSTEM_ALERT_WINDOW allow || cmd appops set ").append(PKG).append(" SYSTEM_ALERT_WINDOW allow ) 2>>\"$LOG\" && echo '  overlay app-op granted' >> \"$LOG\"\n");
         if (ENABLE_ADB_TCP) {
@@ -58,11 +62,11 @@ public final class Neuter {
             s.append("echo \"  adb tcp 5555 requested; init.svc.adbd=$(getprop init.svc.adbd)\" >> \"$LOG\"\n");
         }
         s.append("echo '  done.' >> \"$LOG\"\n");
-        s.append("wc -c < /system/bin/reboot\n");   // echoed back so we can read the result
+        s.append("cat \"$D/status\" 2>/dev/null\n");   // echoed back (OK|PENDING|ENOSETNS) for apply()
         return s.toString();
     }
 
-    /** Apply the neuter. Returns true if /system/bin/reboot ended up shadowed (< 100 bytes). */
+    /** Apply the neuter. Returns true once neuterd reports OK from init's global mount namespace. */
     public static boolean apply(Context ctx) {
         Process p = null;
         try {
@@ -73,12 +77,10 @@ public final class Neuter {
             os.close();
             String last = null, line;
             BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            while ((line = r.readLine()) != null) last = line.trim();
+            while ((line = r.readLine()) != null) { line = line.trim(); if (!line.isEmpty()) last = line; }
             int rc = p.waitFor();
-            int rebootBytes = -1;
-            try { if (last != null) rebootBytes = Integer.parseInt(last); } catch (NumberFormatException ignore) { }
-            boolean ok = rebootBytes >= 0 && rebootBytes < 100;
-            Log.i(TAG, "neuter apply rc=" + rc + " reboot=" + rebootBytes + "B ok=" + ok);
+            boolean ok = "OK".equals(last);
+            Log.i(TAG, "neuter apply rc=" + rc + " status=" + last + " ok=" + ok);
             return ok;
         } catch (Exception e) {
             Log.e(TAG, "neuter apply FAILED (root unavailable?)", e);

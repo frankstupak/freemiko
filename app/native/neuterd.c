@@ -62,20 +62,37 @@ static unsigned long slen(const char *s) {
     return n;
 }
 
-static const char DIR[]  = "/data/local/tmp/freemiko";
-static const char NR[]   = "/data/local/tmp/freemiko/nr";
+static const char DIR[]    = "/data/local/tmp/freemiko";
+static const char NR[]     = "/data/local/tmp/freemiko/nr";
+static const char STATUS[] = "/data/local/tmp/freemiko/status";
 static const char REB[]  = "/system/bin/reboot";
 static const char NSP[]  = "/proc/1/ns/mnt";
 static const char NOOP[] = "#!/system/bin/sh\nexit 0\n";
 
+/* Create/truncate a file at `path` and write the NUL-terminated string `data`. */
+static void writef(const char *path, const char *data, long mode) {
+    long fd = sys(SYS_openat, AT_FDCWD, (long)path, O_WRONLY | O_CREAT | O_TRUNC, mode, 0);
+    if (fd < 0) return;
+    sys(SYS_write, fd, (long)data, (long)slen(data), 0, 0);
+    sys(SYS_close, fd, 0, 0, 0, 0);
+}
+
 /* Write the no-op reboot script and make it executable. */
 static void write_noop(void) {
     sys(SYS_mkdirat, AT_FDCWD, (long)DIR, 0755, 0, 0);   /* ok if it already exists */
-    long fd = sys(SYS_openat, AT_FDCWD, (long)NR, O_WRONLY | O_CREAT | O_TRUNC, 0755, 0);
-    if (fd < 0) return;
-    sys(SYS_write, fd, (long)NOOP, (long)slen(NOOP), 0, 0);
-    sys(SYS_close, fd, 0, 0, 0, 0);
+    writef(NR, NOOP, 0755);
     sys(SYS_fchmodat, AT_FDCWD, (long)NR, 0755, 0, 0);
+}
+
+/* Publish neuter state for the launcher to read. This is written only after the daemon has setns'd
+ * into init's global mount namespace, so "OK" reflects the GLOBAL-ns truth rather than any single
+ * app's mount-ns view. The status file lives on /data, which is shared across namespaces.
+ *   OK       - /system/bin/reboot is shadowed by the no-op (in the global ns)
+ *   PENDING  - mount attempted but not yet effective
+ *   ENOSETNS - could not enter init's ns; a mount here would be app-local and useless, so we refuse */
+static void write_status(const char *s) {
+    sys(SYS_mkdirat, AT_FDCWD, (long)DIR, 0755, 0, 0);
+    writef(STATUS, s, 0644);
 }
 
 /* True if /system/bin/reboot is currently the REAL binary (ELF magic) rather than our no-op. */
@@ -90,22 +107,39 @@ static int reboot_is_real(void) {
 }
 
 void _start(void) {
-    /* 1) enter init's (global) mount namespace, once. */
-    long nsfd = sys(SYS_openat, AT_FDCWD, (long)NSP, O_RDONLY, 0, 0);
-    if (nsfd >= 0) {
-        sys(SYS_setns, nsfd, CLONE_NEWNS, 0, 0, 0);
-        sys(SYS_close, nsfd, 0, 0, 0, 0);
-    }
-
-    /* 2) self-heal loop: keep /system/bin/reboot shadowed by the no-op, forever. */
+    int in_global = 0;
     struct { long sec; long nsec; } ts = {5, 0};
+
+    /* Self-heal loop. First enter init's GLOBAL mount ns, retrying until it takes; only then start
+     * bind-mounting. setns() is CHECKED: on failure we refuse to mount, because a bind-mount made in
+     * this process's own namespace is invisible to the watchdog and would give a false sense of
+     * safety. Once global, keep /system/bin/reboot shadowed by the no-op forever and publish status. */
     for (;;) {
+        if (!in_global) {
+            long r = -1;
+            long nsfd = sys(SYS_openat, AT_FDCWD, (long)NSP, O_RDONLY, 0, 0);
+            if (nsfd >= 0) {
+                r = sys(SYS_setns, nsfd, CLONE_NEWNS, 0, 0, 0);
+                sys(SYS_close, nsfd, 0, 0, 0, 0);
+            }
+            if (r == 0) {
+                in_global = 1;
+            } else {
+                write_status("ENOSETNS\n");
+                sys(SYS_nanosleep, (long)&ts, 0, 0, 0, 0);
+                continue;                 /* retry; never mount outside init's ns */
+            }
+        }
+
         if (reboot_is_real()) {
             write_noop();
             /* bind-mount the no-op over the real reboot, in the GLOBAL ns joined above.
              * Guarded by reboot_is_real() so we never stack duplicate mounts. */
             sys(SYS_mount, (long)NR, (long)REB, 0 /*fstype*/, MS_BIND, 0 /*data*/);
         }
+
+        /* This process lives in init's global ns, so this check is the authoritative one. */
+        write_status(reboot_is_real() ? "PENDING\n" : "OK\n");
         sys(SYS_nanosleep, (long)&ts, 0, 0, 0, 0);
     }
 

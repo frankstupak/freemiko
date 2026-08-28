@@ -53,7 +53,9 @@ echo "== 4/7 d8 (dex) =="
 [ -f "$OUT/classes.dex" ] || { echo "!! d8 produced no classes.dex"; exit 1; }
 
 echo "== 5/7 add classes.dex to apk =="
-( cd "$OUT" && cp unsigned.apk withdex.apk && zip -jq withdex.apk classes.dex )
+# Pin the dex entry to the 1980 zip epoch (matches aapt2's other entries) and strip extra fields,
+# so two builds from the same sources + keystore are byte-identical.
+( cd "$OUT" && cp unsigned.apk withdex.apk && TZ=UTC touch -t 198001010000.00 classes.dex && zip -X -jq withdex.apk classes.dex )
 
 echo "== 6/7 zipalign =="
 "$BT/zipalign" -f -p 4 "$OUT/withdex.apk" "$OUT/aligned.apk"

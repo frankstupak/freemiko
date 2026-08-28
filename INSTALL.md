@@ -14,6 +14,19 @@ adb stays alive. It is a debug-signed APK — install it with adb after the devi
 
 Build the APK yourself if you don't have it: `cd app && bash build.sh` (see `app/README.md`).
 
+## 0. Silence the watchdog first (avoids a mid-install reboot)
+
+Until the neuter is applied, ServiceExam is still running and will reboot the unit a couple of
+seconds after it sees `adbd` — which is exactly the window you install in. Disable it before you
+start so the install can't be interrupted:
+
+```bash
+adb shell pm disable-user --user 0 com.example.root.serviceexam
+```
+
+Leave it disabled — FreeMiko's neuter replaces the only behaviour it enforced. Re-enable with
+`adb shell pm enable com.example.root.serviceexam` if you ever want the stock watchdog back.
+
 ## 1. Install
 
 ```bash
@@ -61,10 +74,17 @@ adb shell am start -n com.freemiko.launcher/.HomeActivity
 ## 5. Verify the watchdog neuter
 
 ```bash
-adb shell su 0 sh -c 'cat /data/local/tmp/freemiko/neuter.log'   # expect: reboot NEUTERED
+adb shell su 0 sh -c 'cat /data/local/tmp/freemiko/status'       # expect: OK
 adb shell su 0 sh -c 'wc -c < /system/bin/reboot'                # expect: < 100 (shadowed no-op)
 adb shell su 0 sh -c 'ps -A | grep -v grep | grep neuterd'       # expect: neuterd running
+adb shell su 0 sh -c 'cat /data/local/tmp/freemiko/neuter.log'   # human-readable trace
 ```
+
+The `status` file is written by `neuterd` from **inside init's global mount namespace**, so `OK`
+means the shadow is effective where the watchdog will see it — not merely in some app's private view.
+An `adb shell` runs under `adbd`, which shares init's global namespace, so the `wc -c` check above is
+also a true reading (an app's in-process check would not be, which is why FreeMiko relies on the
+status file, not its own view of `/system/bin/reboot`).
 
 `/system/bin/reboot` is shadowed by a no-op **bind-mount made in init's global mount namespace** — so
 ServiceExam's `SecurityMonitor`, when it greps `ps` for `adbd` and execs `su -> reboot`, hits the
@@ -100,6 +120,10 @@ adb reboot   # clears the bind-mount neuter (never persisted to /system)
 - **Nav bar missing:** re-run step 2, then FreeMiko → gear → "Restart nav bar".
 - **Back/recents do nothing:** root/`su` not granting FreeMiko. Home still works. Confirm
   `adb shell su 0 id` returns uid 0.
-- **Neuter log says "NOT applied":** `su` unavailable or SELinux enforcing. On the stock userdebug
-  ROM SELinux is permissive; if you re-locked it, the neuter can't mount.
+- **`status` shows `ENOSETNS`:** neuterd could not enter init's mount namespace (it needs root and a
+  permissive/root-capable context). On the stock userdebug ROM this works; if you re-locked the
+  bootloader or changed the ROM it may not, and the neuter will not mount.
+- **`status` shows `PENDING` and never `OK`:** the bind-mount isn't taking. Confirm `su` works
+  (`adb shell su 0 id` returns uid 0) and that `/data/local/tmp/freemiko/neuterd` exists and is
+  executable.
 - **OEM home keeps grabbing HOME:** make sure both `pm disable-user` commands in step 3 ran.

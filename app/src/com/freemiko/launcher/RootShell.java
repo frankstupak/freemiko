@@ -34,6 +34,10 @@ public final class RootShell {
         try {
             proc = Runtime.getRuntime().exec(SU);
             stdin = proc.getOutputStream();
+            // Drain stdout+stderr so this long-lived su can never block on a full pipe buffer
+            // (commands like `input keyevent` are near-silent, but a stray error must not wedge us).
+            drain(proc.getInputStream());
+            drain(proc.getErrorStream());
             // Prove the channel works; harmless if it doesn't.
             stdin.write("id >/dev/null 2>&1\n".getBytes("UTF-8"));
             stdin.flush();
@@ -68,5 +72,18 @@ public final class RootShell {
             stdin = null;
             return false;
         }
+    }
+
+    /** Continuously discard a stream on a daemon thread so a long-lived child never blocks on a
+     *  full pipe buffer. */
+    private static void drain(final java.io.InputStream in) {
+        Thread t = new Thread(new Runnable() {
+            public void run() {
+                byte[] b = new byte[4096];
+                try { while (in.read(b) != -1) { /* discard */ } } catch (Exception ignore) { }
+            }
+        }, "freemiko-su-drain");
+        t.setDaemon(true);
+        t.start();
     }
 }
