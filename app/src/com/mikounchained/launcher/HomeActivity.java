@@ -1,4 +1,4 @@
-package com.freemiko.launcher;
+package com.mikounchained.launcher;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -26,7 +26,7 @@ import java.util.List;
  */
 public class HomeActivity extends Activity {
 
-    private static final String PREFS = "freemiko";
+    private static final String PREFS = "mikounchained";
     private static final String KEY_FIRST_RUN = "first_run_done";
 
     private GridView grid;
@@ -76,7 +76,7 @@ public class HomeActivity extends Activity {
                 runOnUiThread(new Runnable() {
                     public void run() {
                         Toast.makeText(HomeActivity.this,
-                                ok ? "FreeMiko: watchdog neutered" : "FreeMiko: neuter needs root — see INSTALL.md",
+                                ok ? "MikoUnchained: watchdog neutered" : "MikoUnchained: neuter needs root — see INSTALL.md",
                                 Toast.LENGTH_LONG).show();
                     }
                 });
@@ -125,7 +125,7 @@ public class HomeActivity extends Activity {
                 "Restart nav bar",
         };
         new AlertDialog.Builder(this)
-                .setTitle("FreeMiko")
+                .setTitle("MikoUnchained")
                 .setItems(items, new android.content.DialogInterface.OnClickListener() {
                     public void onClick(android.content.DialogInterface d, int which) {
                         switch (which) {

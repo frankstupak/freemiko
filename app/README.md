@@ -1,4 +1,4 @@
-# FreeMiko launcher (`app/`)
+# MikoUnchained launcher (`app/`)
 
 The replacement home for an unlocked Miko 3. Three MVP features, one small APK, no Gradle and no
 androidx — it builds against `android.jar` alone.
@@ -7,7 +7,7 @@ androidx — it builds against `android.jar` alone.
 
 1. **Home replacement** — `HomeActivity` is a clean landscape launcher (matches the Miko head panel):
    an app drawer over all launchable apps, a settings menu (Android settings, re-apply neuter, restart
-   nav bar), FreeMiko branding. Set as default HOME it replaces the interim KISS launcher.
+   nav bar), MikoUnchained branding. Set as default HOME it replaces the interim KISS launcher.
 
 2. **Built-in persistent nav bar** — `NavBarService` is a foreground service that draws a
    `TYPE_APPLICATION_OVERLAY` back/home/recents bar. As an overlay window it floats above every app and
@@ -35,7 +35,7 @@ app/
   native/neuterd.c           freestanding arm64 reboot-neuter daemon (raw syscalls, no libc)
   native/build-neuterd.sh    clang + ld.lld -> native/neuterd (embedded into the APK as base64)
   res/                       vector icons, layouts, dark theme
-  src/com/freemiko/launcher/ HomeActivity, AppListAdapter, AppEntry, NavBarService,
+  src/com/mikounchained/launcher/ HomeActivity, AppListAdapter, AppEntry, NavBarService,
                              RootShell, Neuter, BootReceiver
 ```
 
@@ -47,7 +47,7 @@ Requires JDK 17, the Android SDK (`build-tools;35.0.0`, `platforms;android-28`) 
 ```bash
 cd app
 bash native/build-neuterd.sh   # only if you edited neuterd.c (a prebuilt is embedded by build.sh)
-bash build.sh                  # -> app/freemiko-debug.apk
+bash build.sh                  # -> app/mikounchained-debug.apk
 ```
 
 The debug keystore is generated on first build and is git-ignored — never commit signing keys.

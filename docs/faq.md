@@ -14,7 +14,7 @@ The "lock" was never a security feature — it was a cloud dependency. The devic
 
 **Will the Miko games still work?**
 
-No. All Miko apps depend on `com.miko.mikoplus` which requires a cloud connection to `miko2.co.in` for login. Those servers are permanently offline (NXDOMAIN). The games crash without the service binding. FreeMiko disables them.
+No. All Miko apps depend on `com.miko.mikoplus` which requires a cloud connection to `miko2.co.in` for login. Those servers are permanently offline (NXDOMAIN). The games crash without the service binding. MikoUnchained disables them.
 
 **Can I install other Android apps?**
 
@@ -24,7 +24,7 @@ Yes. The device runs Android 9 with full root access. You can sideload any APK v
 
 The GD32 MCU on the base board controls motors, ToF sensors, IMU, and buttons. Communication runs over UART at 460800 baud. The MCU service (`com.example.root.serviceexam`) is disabled by default after unlock to prevent the factory test screen. It can be re-enabled if you want MCU access, but you'll need to handle the factory test init sequence.
 
-FreeMiko plans to include a standalone MCU bridge that communicates with the GD32 without the dead cloud dependency.
+MikoUnchained plans to include a standalone MCU bridge that communicates with the GD32 without the dead cloud dependency.
 
 **I have a V3.1.6 base board. Will this work?**
 
@@ -36,4 +36,4 @@ Yes — that's one of the primary repurpose targets. The head board (screen + ca
 
 **Is this legal?**
 
-FreeMiko is a tool for hardware you own. The manufacturer has abandoned the product and shut down the cloud services it depends on. This is not circumventing active security or DRM — it's restoring functionality to orphaned hardware. See also: right to repair.
+MikoUnchained is a tool for hardware you own. The manufacturer has abandoned the product and shut down the cloud services it depends on. This is not circumventing active security or DRM — it's restoring functionality to orphaned hardware. See also: right to repair.

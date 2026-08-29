@@ -26,7 +26,7 @@ Look for a standard micro-USB connector on the PCB — it's the only micro-USB f
 
 1. Plug a micro-USB cable from this internal port to your PC
 2. The Miko 3 should be powered OFF before connecting
-3. Run the FreeMiko unlock script, then power on the robot
+3. Run the MikoUnchained unlock script, then power on the robot
 4. The script will catch the MediaTek preloader in the first 500ms of boot
 
 ## Reassembly

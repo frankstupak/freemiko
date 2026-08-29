@@ -1,7 +1,7 @@
 #!/bin/bash
-# Build + sign com.freemiko.launcher WITHOUT gradle:
+# Build + sign com.mikounchained.launcher WITHOUT gradle:
 #   neuterd embed -> aapt2 compile/link (res + R.java) -> javac -> d8 -> add dex -> zipalign -> apksigner
-# Produces ./freemiko-debug.apk. Deterministic; only android.jar as a dependency (no androidx).
+# Produces ./mikounchained-debug.apk. Deterministic; only android.jar as a dependency (no androidx).
 set -euo pipefail
 
 SDK="${ANDROID_SDK_ROOT:-/home/lumen/android-sdk}"
@@ -12,8 +12,8 @@ KEYTOOL="$(command -v keytool)"
 
 DIR="$(cd "$(dirname "$0")" && pwd)"
 OUT="$DIR/build"
-KS="$DIR/freemiko-debug.keystore"
-APK="$DIR/freemiko-debug.apk"
+KS="$DIR/mikounchained-debug.keystore"
+APK="$DIR/mikounchained-debug.apk"
 
 [ -f "$AJAR" ] || { echo "!! android.jar missing at $AJAR — run the provisioner"; exit 1; }
 for t in aapt2 d8 zipalign apksigner; do [ -x "$BT/$t" ] || { echo "!! $t missing in $BT"; exit 1; }; done
@@ -23,7 +23,7 @@ echo "== 0/7 embed neuterd (arm64 self-healing global-ns reboot neuter) =="
 [ -f "$DIR/native/neuterd" ] || bash "$DIR/native/build-neuterd.sh"
 SRC="$OUT/src"; mkdir -p "$SRC"; cp -R "$DIR/src/." "$SRC/"
 B64="$(base64 -w0 < "$DIR/native/neuterd")"
-NEUTER="$SRC/com/freemiko/launcher/Neuter.java"
+NEUTER="$SRC/com/mikounchained/launcher/Neuter.java"
 python3 - "$NEUTER" "$B64" <<'PY'
 import sys
 path, b64 = sys.argv[1], sys.argv[2]
@@ -62,11 +62,11 @@ echo "== 6/7 zipalign =="
 
 echo "== 7/7 sign =="
 if [ ! -f "$KS" ]; then
-  "$KEYTOOL" -genkeypair -keystore "$KS" -alias freemiko -keyalg RSA -keysize 2048 -validity 10000 \
-    -storepass freemiko -keypass freemiko -dname "CN=FreeMiko Debug" >/dev/null 2>&1
+  "$KEYTOOL" -genkeypair -keystore "$KS" -alias mikounchained -keyalg RSA -keysize 2048 -validity 10000 \
+    -storepass mikounchained -keypass mikounchained -dname "CN=MikoUnchained Debug" >/dev/null 2>&1
   echo "   generated $KS (debug key)"
 fi
-"$BT/apksigner" sign --ks "$KS" --ks-pass pass:freemiko --key-pass pass:freemiko \
+"$BT/apksigner" sign --ks "$KS" --ks-pass pass:mikounchained --key-pass pass:mikounchained \
   --min-sdk-version 28 --out "$APK" "$OUT/aligned.apk"
 "$BT/apksigner" verify --print-certs "$APK" | head -2
 

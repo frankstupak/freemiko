@@ -1,4 +1,4 @@
-package com.freemiko.launcher;
+package com.mikounchained.launcher;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -19,7 +19,7 @@ import android.view.WindowManager;
 /**
  * Feature 2 — the always-on nav bar.
  *
- * The Miko ROM ships a 0px system navbar and verity blocks patching the system overlay, so FreeMiko
+ * The Miko ROM ships a 0px system navbar and verity blocks patching the system overlay, so MikoUnchained
  * draws its OWN back/home/recents bar as a TYPE_APPLICATION_OVERLAY window managed here. Being an
  * overlay window it floats above every app and survives app switches; being a foreground service it
  * survives memory pressure and is restarted (START_STICKY) if the ROM kills it. Back and recents are
@@ -31,8 +31,8 @@ import android.view.WindowManager;
  */
 public class NavBarService extends Service {
 
-    private static final String TAG = "FreeMiko";
-    private static final String CHAN = "freemiko_navbar";
+    private static final String TAG = "MikoUnchained";
+    private static final String CHAN = "mikounchained_navbar";
     private static final int NOTE_ID = 42;
 
     private WindowManager wm;
@@ -54,7 +54,7 @@ public class NavBarService extends Service {
     private void startForegroundNote() {
         NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         if (Build.VERSION.SDK_INT >= 26) {
-            NotificationChannel ch = new NotificationChannel(CHAN, "FreeMiko nav bar",
+            NotificationChannel ch = new NotificationChannel(CHAN, "MikoUnchained nav bar",
                     NotificationManager.IMPORTANCE_MIN);
             ch.setShowBadge(false);
             nm.createNotificationChannel(ch);
@@ -62,7 +62,7 @@ public class NavBarService extends Service {
         Notification.Builder b = (Build.VERSION.SDK_INT >= 26)
                 ? new Notification.Builder(this, CHAN)
                 : new Notification.Builder(this);
-        Notification n = b.setContentTitle("FreeMiko")
+        Notification n = b.setContentTitle("MikoUnchained")
                 .setContentText("Navigation bar active")
                 .setSmallIcon(R.drawable.ic_home)
                 .setOngoing(true)

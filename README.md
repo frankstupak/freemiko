@@ -1,10 +1,10 @@
-# FreeMiko
+# MikoUnchained
 
 Unlock and repurpose orphaned Miko 3 robots whose cloud services have been permanently shut down.
 
-Miko 3 robots are stuck on a pairing screen that phones home to servers that no longer exist — `miko3-k8s-admin1.miko2.co.in` and `miko3-aks-ingress.miko2.co.in` both return NXDOMAIN. No firmware update is coming. FreeMiko turns them back into usable devices.
+Miko 3 robots are stuck on a pairing screen that phones home to servers that no longer exist — `miko3-k8s-admin1.miko2.co.in` and `miko3-aks-ingress.miko2.co.in` both return NXDOMAIN. No firmware update is coming. MikoUnchained turns them back into usable devices.
 
-## What FreeMiko does
+## What MikoUnchained does
 
 1. **Unlocks the device** using a documented MediaTek preloader exploit (mtkclient) — no soldering, no special hardware
 2. **Restores ADB access** by wiping userdata, which lets the ROM's built-in `persist.sys.usb.config=adb` take effect
@@ -25,15 +25,15 @@ Miko 3 robots are stuck on a pairing screen that phones home to servers that no 
 # Install mtkclient
 pip install mtkclient
 
-# Clone FreeMiko
-git clone https://github.com/frankstupak/freemiko.git
-cd freemiko
+# Clone MikoUnchained
+git clone https://github.com/frankstupak/mikounchained.git
+cd mikounchained
 
 # Open the Miko 3 shell and connect the INTERNAL micro-USB port to your PC
 # (see docs/teardown.md for photos)
 
 # Unlock
-./unlock/freemiko-unlock.sh
+./unlock/mikounchained-unlock.sh
 ```
 
 The script handles everything: catching the preloader, wiping userdata, waiting for reboot, installing the launcher, disabling dead apps, and enabling the navigation bar.
@@ -66,25 +66,25 @@ A rooted Android 9 device with:
 - [Hardware details](docs/hardware.md) — board revisions, pinouts, connectors
 - [Reverse engineering](docs/reverse-engineering.md) — how the unlock was found
 - [FAQ](docs/faq.md)
-- [Launcher app](app/README.md) — the FreeMiko home/nav-bar/watchdog-neuter APK
+- [Launcher app](app/README.md) — the MikoUnchained home/nav-bar/watchdog-neuter APK
 - [Install guide](INSTALL.md) — adb steps to install the launcher on an unlocked unit
 
 ## Project status
 
 - [x] Unlock process verified on V5.4 base board
 - [x] ADB restore via userdata wipe
-- [x] Launcher replacement (KISS launcher interim, superseded by the FreeMiko launcher below)
+- [x] Launcher replacement (KISS launcher interim, superseded by the MikoUnchained launcher below)
 - [x] Face animation assets extracted (225 MP4s, 360 expression scripts)
 - [x] MCU UART protocol mapped (460800 8N1, 50+ commands)
 - [x] MikoPlus / Launcher / MCU Service decompiled (jadx)
-- [x] FreeMiko launcher APK — home replacement + built-in persistent nav bar + watchdog neuter (`app/`)
+- [x] MikoUnchained launcher APK — home replacement + built-in persistent nav bar + watchdog neuter (`app/`)
 - [ ] Face animation player
 - [ ] MCU serial bridge for external robot control
 - [ ] V3.1.6 base board testing
 
 ## Legal
 
-This project is for devices you own. FreeMiko is a hardware liberation tool for orphaned consumer devices whose manufacturer has abandoned cloud services. It does not bypass DRM, pirate content, or circumvent security on active products.
+This project is for devices you own. MikoUnchained is a hardware liberation tool for orphaned consumer devices whose manufacturer has abandoned cloud services. It does not bypass DRM, pirate content, or circumvent security on active products.
 
 Not affiliated with Miko / Emotix / KlugTek. Miko 3 is a trademark of its respective owner.
 

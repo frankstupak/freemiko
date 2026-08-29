@@ -1,4 +1,4 @@
-package com.freemiko.launcher;
+package com.mikounchained.launcher;
 
 import android.util.Log;
 
@@ -13,7 +13,7 @@ import java.io.OutputStream;
  */
 public final class RootShell {
 
-    private static final String TAG = "FreeMiko";
+    private static final String TAG = "MikoUnchained";
     private static final String SU = "/system/bin/su";
 
     private static RootShell sInstance;
@@ -82,7 +82,7 @@ public final class RootShell {
                 byte[] b = new byte[4096];
                 try { while (in.read(b) != -1) { /* discard */ } } catch (Exception ignore) { }
             }
-        }, "freemiko-su-drain");
+        }, "mikounchained-su-drain");
         t.setDaemon(true);
         t.start();
     }

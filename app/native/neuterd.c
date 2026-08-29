@@ -1,5 +1,5 @@
 /*
- * neuterd — FreeMiko reboot-watchdog neuter (arm64 Android, freestanding, no libc).
+ * neuterd — MikoUnchained reboot-watchdog neuter (arm64 Android, freestanding, no libc).
  *
  * PROBLEM. ServiceExam's SecurityMonitor (com.example.root.serviceexam) greps `ps` for the string
  * "adbd" every ~2s and, if it finds it, execs `su -> reboot`, which freezes a repurposed unit in a
@@ -9,7 +9,7 @@
  * made in init's GLOBAL mount namespace (PID 1) to be visible to the watchdog.
  *
  * APPROACH (credit: the OpenMiko / miko3-adb-boot-agent community documented this technique; this
- * is an independent, from-scratch implementation for FreeMiko, GPL-3.0). This daemon:
+ * is an independent, from-scratch implementation for MikoUnchained, GPL-3.0). This daemon:
  *   1. setns() into /proc/1/ns/mnt so every subsequent mount is global.
  *   2. loops forever: whenever /system/bin/reboot is still the real ELF (shadow missing, e.g. just
  *      after boot), write a no-op shell script and bind-mount it over /system/bin/reboot.
@@ -17,7 +17,7 @@
  *
  * Device context: Android 9 / MT8167 (arm64), verity ENFORCING (/system read-only), SELinux
  * Permissive (ro.secure=0) so setns+mount from a root context are unrestricted. Run as root; the
- * FreeMiko launcher execs it via /system/bin/su (which on this ROM takes its script on stdin).
+ * MikoUnchained launcher execs it via /system/bin/su (which on this ROM takes its script on stdin).
  *
  * No NDK / libc: raw aarch64 Linux syscalls only. Build: see build-neuterd.sh.
  */
@@ -62,9 +62,9 @@ static unsigned long slen(const char *s) {
     return n;
 }
 
-static const char DIR[]    = "/data/local/tmp/freemiko";
-static const char NR[]     = "/data/local/tmp/freemiko/nr";
-static const char STATUS[] = "/data/local/tmp/freemiko/status";
+static const char DIR[]    = "/data/local/tmp/mikounchained";
+static const char NR[]     = "/data/local/tmp/mikounchained/nr";
+static const char STATUS[] = "/data/local/tmp/mikounchained/status";
 static const char REB[]  = "/system/bin/reboot";
 static const char NSP[]  = "/proc/1/ns/mnt";
 static const char NOOP[] = "#!/system/bin/sh\nexit 0\n";

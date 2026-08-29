@@ -1,5 +1,5 @@
 #!/bin/bash
-# FreeMiko unlock script
+# MikoUnchained unlock script
 # Unlocks a Miko 3 robot stuck on the dead cloud pairing screen
 # Requires: mtkclient (pip install mtkclient), adb
 set -euo pipefail
@@ -11,7 +11,7 @@ CYAN='\033[0;36m'
 NC='\033[0m'
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-APK_PATH="${SCRIPT_DIR}/../app/FreeMiko.apk"
+APK_PATH="${SCRIPT_DIR}/../app/MikoUnchained.apk"
 
 info()  { echo -e "${CYAN}[*]${NC} $1"; }
 ok()    { echo -e "${GREEN}[✓]${NC} $1"; }
@@ -20,7 +20,7 @@ fail()  { echo -e "${RED}[✗]${NC} $1"; exit 1; }
 
 echo ""
 echo -e "${CYAN}╔═══════════════════════════════════════╗${NC}"
-echo -e "${CYAN}║          FreeMiko Unlock Tool          ║${NC}"
+echo -e "${CYAN}║          MikoUnchained Unlock Tool          ║${NC}"
 echo -e "${CYAN}╚═══════════════════════════════════════╝${NC}"
 echo ""
 
@@ -85,17 +85,17 @@ adb devices | grep -q "device$" || fail "ADB did not come up after 4 minutes. Ch
 SERIAL=$(adb shell getprop ro.serialno 2>/dev/null | tr -d '\r')
 info "Device serial: $SERIAL"
 
-# Phase 3: Install FreeMiko / KISS launcher
+# Phase 3: Install MikoUnchained / KISS launcher
 echo ""
 info "Phase 3: Installing launcher"
 
 if [ -f "$APK_PATH" ]; then
     adb install "$APK_PATH"
-    HOME_PKG="com.freemiko.launcher"
+    HOME_PKG="com.mikounchained.launcher"
     HOME_ACT=".MainActivity"
-    ok "FreeMiko APK installed"
+    ok "MikoUnchained APK installed"
 else
-    warn "FreeMiko.apk not found at $APK_PATH"
+    warn "MikoUnchained.apk not found at $APK_PATH"
     info "Downloading KISS Launcher as interim replacement..."
     KISS_URL="https://f-droid.org/repo/fr.neamar.kiss_186.apk"
     KISS_TMP="/tmp/kiss-launcher.apk"

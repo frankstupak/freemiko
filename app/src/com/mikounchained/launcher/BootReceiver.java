@@ -1,4 +1,4 @@
-package com.freemiko.launcher;
+package com.mikounchained.launcher;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -7,14 +7,14 @@ import android.os.Build;
 import android.util.Log;
 
 /**
- * Re-establishes FreeMiko on every boot: re-applies the watchdog neuter (the neuterd process does not
+ * Re-establishes MikoUnchained on every boot: re-applies the watchdog neuter (the neuterd process does not
  * survive a reboot even though its binary in /data does) and starts the nav bar overlay. This is the
  * same BOOT_COMPLETED mechanism a launcher/utility uses; on this ROM it is also the only way to run a
  * root command at boot (verity-RO init consumes no adb/property trigger).
  */
 public class BootReceiver extends BroadcastReceiver {
 
-    private static final String TAG = "FreeMiko";
+    private static final String TAG = "MikoUnchained";
 
     @Override
     public void onReceive(final Context context, Intent intent) {

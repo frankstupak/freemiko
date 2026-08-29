@@ -1,4 +1,4 @@
-package com.freemiko.launcher;
+package com.mikounchained.launcher;
 
 import android.content.Context;
 import android.view.LayoutInflater;
